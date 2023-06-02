@@ -91,11 +91,27 @@ struct thread
     struct list_elem allelem;           /* List element for all threads list. */
 
     /* Shared between thread.c and synch.c. */
-    struct list_elem elem;              /* List element. */
+    struct list_elem elem;              /* List element stored in the ready_list queue */
+    int original_priority;              /* Before donation priority */
+    struct list_elem waitelem;          
+    int64_t sleep_endtick;              /* The tick after which the thread should awake  */
+
+    //for priority donations
+    struct lock *waiting_lock;          /* The lock object on which this thread is waiting*/
+    struct list locks;                  /* List of locks the thread holds */
 
 #ifdef USERPROG
     /* Owned by userprog/process.c. */
     uint32_t *pagedir;                  /* Page directory. */
+
+    struct list file_descriptors;       /* List of file_descriptors the thread contains */
+
+    struct file *executing_file;        /* The executable file of associated process. */
+
+/* PCB */
+    struct process_control_block *pcb;  
+   // List of children processes of this thread,defined by pcb#elem
+    struct list child_list;            
 #endif
 
     /* Owned by thread.c. */
@@ -110,8 +126,9 @@ extern bool thread_mlfqs;
 void thread_init (void);
 void thread_start (void);
 
-void thread_tick (void);
+
 void thread_print_stats (void);
+void thread_tick (int64_t tick);
 
 typedef void thread_func (void *aux);
 tid_t thread_create (const char *name, int priority, thread_func *, void *);
@@ -119,10 +136,12 @@ tid_t thread_create (const char *name, int priority, thread_func *, void *);
 void thread_block (void);
 void thread_unblock (struct thread *);
 
+
+
 struct thread *thread_current (void);
 tid_t thread_tid (void);
 const char *thread_name (void);
-
+void thread_sleep_until (int64_t wake_tick);
 void thread_exit (void) NO_RETURN;
 void thread_yield (void);
 
@@ -137,5 +156,7 @@ int thread_get_nice (void);
 void thread_set_nice (int);
 int thread_get_recent_cpu (void);
 int thread_get_load_avg (void);
+void thread_priority_donate(struct thread *, int priority);
+
 
 #endif /* threads/thread.h */

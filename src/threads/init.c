@@ -134,13 +134,69 @@ pintos_init (void)
     run_actions (argv);
   } else {
     // TODO: no command line passed to kernel. Run interactively 
+
+
+    while (true){
+      printf("%s","CS2042>");
+      char *input = (char*)calloc(100, sizeof(char));
+      char w;
+      int i = 0;
+      while((w = (input_getc()))){  
+        if(w == '\r'){
+          input[i] = '\0';
+          //new line
+          printf("%s","\n");
+          break;
+        }
+        if (w == '\b'){
+          if (i > 0){
+            i--;
+            printf("%s","\b \b");
+          }
+        } 
+        else {
+          input[i] = w;
+          i++;
+          printf("%c",w);
+        }
+      }
+      if (!strcmp(input, "exit")){
+        printf("%s\n","exit from interactive shell");
+        break;
+      }
+      else if(!strcmp(input, "whoami")){
+        printf("%s\n" , "Anoshan - 200040B");        
+      }
+      else if(!strcmp(input, "shutdown")){
+        printf("%s\n" , "Shutting Down...");
+        shutdown_power_off();        
+      }
+      else if(!strcmp(input, "time")){
+        //get time from rtc_get_time
+        printf("%lus\n", rtc_get_time());   
+      }
+      else if(!strcmp(input, "ram")){
+        printf("%dKB\n", init_ram_pages * PGSIZE / 1024);      
+      }
+      else if(!strcmp(input, "thread")){
+        thread_print_stats();      
+      }
+      else if(!strcmp(input, "priority")){
+        printf("%i\n", thread_current()->priority);      
+      }
+      else{
+        printf("%s\n","Invalid Command");      
+      }
+    
+    // /* Run interactive command loop. */
+  }
   }
 
   /* Finish up. */
   shutdown ();
   thread_exit ();
 }
-
+
 /* Clear the "BSS", a segment that should be initialized to
    zeros.  It isn't actually stored on disk or zeroed by the
    kernel loader, so we have to zero it ourselves.
